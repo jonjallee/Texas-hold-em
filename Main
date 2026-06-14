@@ -1,0 +1,68 @@
+ // 진정한 프로그램의 시작점 (메뉴 반복 루프 적용)
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        System.out.println("---------------Welcome---------------");
+
+        System.out.println("Please enter your name:");
+        String name = sc.nextLine();
+
+        // 1. 유저, AI, 테이블, 페이즈 객체 생성
+        Player user = new Player(name);
+        Player ai = new Player("경주 이씨 한량");
+        Table table = new Table();
+        Phase gamePhase = new Phase();
+
+        // 메뉴 반복을 위한 무한 루프 도입
+        boolean keepRunning = true;
+        while (keepRunning) {
+            // 메뉴 출력 및 선택 창
+            System.out.println("\n--- MENU ---");
+            System.out.println("1. Play");
+            System.out.println("2. Guide");
+            System.out.println("3. Quit");
+            System.out.print("선택: ");
+
+            int choice = sc.nextInt();
+            sc.nextLine(); //  숫자 입력 후 남아있는 데이터 제거 (버그 방지)
+
+            switch (choice) {
+                case 1:
+
+                     //게임 플레이 후 초기화 및 재시작 준비
+
+                    gamePhase.startLoop(user, ai, table);
+
+                    // 한 판이 끝나면 다음 판을 위해 테이블과 플레이어 손패를 깨끗이 비워줍니다.
+                    table.clearTable();
+                    user.hand.clear();
+                    ai.hand.clear();
+                    break;
+
+                case 2:
+                    //가이드 출력 후 메뉴로 리턴
+
+                    System.out.println("\n==================================================");
+                    System.out.println(" [ 텍사스 홀덤 간단 가이드 ]");
+                    System.out.println("1. 게임이 시작되면 본인의 핸드 카드 2장을 받습니다.");
+                    System.out.println("2. 이후 바닥(테이블)에 총 5장의 공통 카드가 순차적으로 깔립니다.");
+                    System.out.println("3. 각 페이즈(Flop, Turn, River)마다 배팅을 진행합니다.");
+                    System.out.println("4. 본인 카드 2장과 바닥 카드 5장, 총 7장 중 최상의 5장을 조합합니다.");
+                    System.out.println("5. 상대방(경주 이씨 한량)보다 높은 족보를 완성하면 판돈을 땁니다!");
+                    System.out.println("6. 상대방의 기본 배팅금액은 50칩 입니다!");
+                    System.out.println("7. 당신의 능력으로 상대방의 콧대를 눌러버리세요!");
+                    System.out.println("==================================================");
+                    System.out.println("-> 엔터를 누르면 메인 메뉴로 돌아갑니다.");
+                    sc.nextLine(); // 사용자가 확인하고 엔터를 칠 때까지 대기
+                    break;
+
+                case 3:
+                    System.out.println("\n게임이 완전히 종료되었습니다. 이용해 주셔서 감사합니다.");
+                    keepRunning = false; // 루프 탈출 조건 수행
+                    break;
+                //1,2,3 을 제외한 숫자 입력시 출력 후 처음으로 되돌리기 
+                default:
+                    System.out.println("\n잘못된 입력입니다. 1, 2, 3 번 중에서 선택해 주세요.");
+                    break;
+            }
+        }
+    }
