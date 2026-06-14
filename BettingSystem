@@ -1,0 +1,59 @@
+class BettingSystem {
+    private Scanner sc = new Scanner(System.in);
+
+    public boolean runRound(Player user, Player ai, Table table) {
+        printCurrentStatus(user, ai, table); //정보 불러오기
+
+        table.currentBet = 50; //상대의 기본 배팅금액
+        System.out.println("경주 이씨 한량이 기본으로 50칩을 배팅했습니다.");
+
+        System.out.println("\n행동을 선택하세요.");
+        System.out.println("1. Call (50칩 내고 따라가기)");
+        System.out.println("2. Raise (더 많은 칩을 걸어 판돈 키우기)");
+        System.out.println("3. Fold (이번 판 포기하고 다이)");
+        System.out.print("선택: ");
+        int choice = sc.nextInt();
+
+        switch (choice) {
+            case 1: // 콜 (Call)
+                System.out.println("\n콜! 50칩을 지불하고 라운드를 진행합니다.");
+                table.acceptBet(user, table.currentBet);
+                table.acceptBet(ai, table.currentBet);
+                table.resetRoundBet(); //현재 라운드 배팅 초기화 
+                return true;
+
+            case 2: // 레이즈 (Raise)
+                System.out.print("얼마를 추가로 레이즈하시겠습니까? (최소 100칩 이상): ");
+                int raiseAmount = sc.nextInt();
+
+                if (raiseAmount > user.chip) {
+                    System.out.println("보유 칩이 부족하여 전재산을 거는 올인 처리됩니다!"); //레이즈 하려는 값이 보유칩보다 높을 경우 올인
+                    raiseAmount = user.chip;
+                }
+
+                System.out.println("\n▶ 레이즈! 총 " + raiseAmount + "칩을 배팅합니다.");
+                table.acceptBet(user, raiseAmount);
+
+                System.out.println("이씨 가문 한량이 유저의 레이즈를 받아 동일한 금액을 콜했습니다.");
+                table.acceptBet(ai, raiseAmount);
+
+                table.resetRoundBet();
+                return true;
+
+            case 3: // 폴드 (Fold / 다이)
+                System.out.println("\n▶ 폴드.. 이번 판을 포기합니다."); 
+                System.out.println("이씨 가문 한량이 기권승으로 판돈 " + table.totalPot + "개를 모두 가져갑니다."); //폴드 선택시 즉시 그판을 패배하고 배팅 총액을 상대가 가져감
+                table.awardPotToWinner(ai); 
+                return false;
+        }
+        return true;
+    }
+    //게임 흐름 제어 클래스 
+    private void printCurrentStatus(Player user, Player ai, Table table) {
+        System.out.println("\n--- [ 배팅 라운드 시작 ] ---");
+        System.out.println("[" + user.getName() + "]님의 보유 칩: " + user.chip + "개");
+        System.out.println("[경주 이씨 한량]의 보유 칩: " + ai.chip + "개");
+        System.out.println("현재 테이블 총 판돈: " + table.totalPot + "개");
+        System.out.println("----------------------------------");
+    }
+}
