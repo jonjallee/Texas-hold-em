@@ -1,22 +1,126 @@
-// 포커게임 기본 게임 진행 코드
+// 게임 흐름 제어 클래스
 class Phase {
-    public void startLoop() {
-        boolean roundInProgress = true;
-        int currentPhase = 1;
+    private Genealogy genealogy = new Genealogy(); // 족보 판정기 불러오기
 
-        while (roundInProgress) {
-            switch (currentPhase) {
-                case 1:  // PRE_FLOP: 덱에서 카드 2장 나누기 && 배팅
+    // 실제 게임의 전체 흐름을 제어하는 코드
+    public void startLoop(Player user, Player ai, Table table) {
+        boolean OpenTheGame = true;
+        int Phase = 1; // 1: PRE-FLOP, 2: FLOP, 3: TURN, 4: RIVER, 5: SHOWDOWN
+        Scanner sc = new Scanner(System.in);
+
+        System.out.println("\n========== [ Open The Game ] ==========");
+
+        // 1. 덱 생성 및 셔플
+        Main.Deck();
+
+        while (OpenTheGame) {
+            switch (Phase) {
+                case 1: // 1 페이즈 각자 2장씩 카드를 나누어 받는 파트 
+                    System.out.println("\n[Phase 1] \n각자에게 카드 2장씩 나눠줍니다.");
+                    user.hand.add(Main.drawCard()); //플레이어 카드추가
+                    user.hand.add(Main.drawCard());
+                    ai.hand.add(Main.drawCard()); //상대 카드추가
+                    ai.hand.add(Main.drawCard());
+
+                    // 플레이어의 손패 보여주기
+                    showUserHand(user);
+
+                    System.out.println("-> 엔터를 누르면 진행합니다");
+                    sc.nextLine();
+                    Phase = 2; // 다음 단계로 이동
                     break;
-                case 2:  // FLOP: 테이블카드 3장 까기 && 배팅
+                 
+                case 2: // 2 페이즈 테이블 카드 3장 오픈 
+                    System.out.println("\n[Phase 2] \n테이블 카드 3장을 깝니다.");
+                    table.communityCards.add(Main.drawCard()); //테이블 카드 오픈(추가)
+                    table.communityCards.add(Main.drawCard());
+                    table.communityCards.add(Main.drawCard());
+                    // 테이블 카드 보여주기
+                    showTableCards(table);
+
+                    System.out.println("-> 엔터를 누르면 진행합니다");
+                    sc.nextLine();
+                    Phase = 3;
                     break;
-                case 3:  // TURN: 테이블 카드 1장 까기 && 배팅
+
+                case 3: // 3 페이즈 테이블에서 4번째 카드 오픈
+                    System.out.println("\n[Phase 3] \n테이블에 네 번째 카드를 깝니다.");
+                    table.communityCards.add(Main.drawCard());
+
+                    showTableCards(table);
+
+                    System.out.println("-> 엔터를 누르면 진행합니다");
+                    sc.nextLine();
+                    Phase = 4;
                     break;
-                case 4:  // RIVER: 마지막 테이블 카드 1장 까기 && 최종 배팅
+
+                case 4: // 4 페이즈 테이블에 남아있는 마지막 카드 오픈 
+                    System.out.println("\n[Phase 4] \n테이블에 마지막 카드를 깝니다.");
+                    table.communityCards.add(Main.drawCard());
+
+                    showTableCards(table);
+
+                    System.out.println("-> 엔터를 누르면 진행합니다");
+                    sc.nextLine();
+                    Phase = 5;
                     break;
-                case 5:  // SHOWDOWN: 족보 비교 후 승패 결산
+
+                case 5: // 5 페이즈 마지막 최종 검정 
+                    System.out.println("\n[Phase 5] 최종 결과");
+
+                    // 유저의 최종 카드 7장 모으기 (손패 2장 + 테이블 5장)
+                    ArrayList<Card> userSevenCards = new ArrayList<>(); //저장 공간 생성
+                    userSevenCards.addAll(user.hand); //손패 2장추가 
+                    userSevenCards.addAll(table.communityCards); //테이블 5장추가
+
+                    // AI의 최종 카드 7장 모으기
+                    ArrayList<Card> aiSevenCards = new ArrayList<>(); 
+                    aiSevenCards.addAll(ai.hand);
+                    aiSevenCards.addAll(table.communityCards);
+
+                    // 족보 점수 계산
+                    int userScore = genealogy.evaluateHand(userSevenCards);
+                    int aiScore = genealogy.evaluateHand(aiSevenCards);
+
+                    System.out.println("경주 이씨 한량 카드: " + ai.hand.get(0).pattern + " " + ai.hand.get(0).rank
+                            + ", " + ai.hand.get(1).pattern + " " + ai.hand.get(1).rank);
+                    System.out.println("\n==================================");
+                    System.out.println("[" + user.getName() + "]님의 점수: " + userScore + "점");
+                    System.out.println("[경주 이씨 한량]의 족보 점수: " + aiScore + "점");
+
+                    // 승패 판정 로직
+                    if (userScore > aiScore) {
+                        System.out.println(" 승리! [" + user.getName() + "]님이 판돈을 가져갑니다. ");
+                    } else if (userScore < aiScore) {
+                        System.out.println(" 패배... 경주 이씨 한량이 판돈을 쓸어갑니다. ");
+                    } else {
+                        System.out.println(" 무승부(Split Pot)! 판돈을 절반씩 나눠 가집니다. ");
+                    }
+                    System.out.println("==================================");
+
+                    OpenTheGame = false; // 루프 완전히 탈출 (게임 종료)
                     break;
             }
         }
+    }
+
+    // 유저 카드를 보여주는 출력 도우미 메서드
+    private void showUserHand(Player user) {
+        System.out.println("----------------------------------");
+        System.out.println("▶ [" + user.getName() + "]님의 카드: ");
+        for (Card c : user.hand) {
+            System.out.print("[" + c.pattern + " " + c.rank + "] ");
+        }
+        System.out.println("\n----------------------------------");
+    }
+
+    // 바닥 카드를 보여주는 출력 도우미 메서드
+    private void showTableCards(Table table) {
+        System.out.println("----------------------------------");
+        System.out.println("▶ 현재 테이블 카드: ");
+        for (Card c : table.communityCards) {
+            System.out.print("[" + c.pattern + " " + c.rank + "] ");
+        }
+        System.out.println("\n----------------------------------");
     }
 }
