@@ -1,0 +1,14 @@
+// 플레이어 클래스 (이름 받기, 기본 점수 배당, 손패 저장)
+class Player {
+    String name;
+    int chip = 1000; // 플레이어 기본 점수인 1,000점 세팅
+    ArrayList<Card> hand = new ArrayList<>(); // 2장의 카드를 담을 리스트
+
+    Player(String name) {
+        this.name = name;
+    }
+
+    String getName() {
+        return name;
+    }
+}
