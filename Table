@@ -1,5 +1,48 @@
-//배팅한 칩들이나 테이블 카드를 저장할 클래스
+// 테이블 클래스 (테이블 카드 및 판돈,배팅 상태)
 class Table {
-    ArrayList<Card> communityCards = new ArrayList<>(); //테이블 카드 
-    int totalPot = 0; // 총 배팅 금액
+    ArrayList<Card> communityCards = new ArrayList<>(); // 바닥에 깔린 테이블 카드 5장
+    int totalPot = 0;           // 게임 승자가 최종적으로 가져갈 총 판돈
+    int currentBet = 0;         // 현재 라운드에서 진행 중인 최고 배팅 금액
+
+    
+    //배팅 칩 수거 및 최고 배팅액 갱신
+    public void acceptBet(Player player, int amount) {
+        player.chip -= amount; // 플레이어 칩 차감
+        this.totalPot += amount; // 테이블 총 판돈에 누적
+
+        // 현재 최고 배팅액보다 더 큰 금액이 들어오면 기준선 갱신
+        if (amount > this.currentBet) {
+            this.currentBet = amount;
+            System.out.println("최고 배팅액이 " + this.currentBet + "으로 갱신되었습니다.");
+        }
+    }
+
+    //배팅 라운드 초기화
+    public void resetRoundBet() {
+        this.currentBet = 0;
+    }
+
+    // 승자에게 판돈 몰아주기
+    public void awardPotToWinner(Player winner) {
+        System.out.println("★ [TABLE] " + winner.getName() + "님에게 팟(Pot)에 쌓인 칩 " + this.totalPot + "개를 지급합니다.");
+        winner.chip += this.totalPot;
+        this.totalPot = 0; // 테이블 판돈 리셋
+    }
+
+    //무승부 시 판돈 2분할 (Split Pot)
+    
+    public void splitPot(Player player1, Player player2) {
+        int halfPot = this.totalPot / 2;
+        System.out.println("무승부로 인해 칩을 " + halfPot + "개씩 나누어 가집니다.");
+        player1.chip += halfPot;
+        player2.chip += halfPot;
+        this.totalPot = 0;
+    }
+
+    // 테이블 상태 전부 초기화 (테이블 카드, 총 배팅액, 최고 배팅액)
+    public void clearTable() {
+        this.communityCards.clear();
+        this.totalPot = 0;
+        this.currentBet = 0;
+    }
 }
