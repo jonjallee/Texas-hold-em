@@ -1,0 +1,5 @@
+//배팅한 칩들이나 테이블 카드를 저장할 클래스
+class Table {
+    ArrayList<Card> communityCards = new ArrayList<>(); //테이블 카드 
+    int totalPot = 0; // 총 배팅 금액
+}
