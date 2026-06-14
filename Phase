@@ -1,0 +1,22 @@
+// 포커게임 기본 게임 진행 코드
+class Phase {
+    public void startLoop() {
+        boolean roundInProgress = true;
+        int currentPhase = 1;
+
+        while (roundInProgress) {
+            switch (currentPhase) {
+                case 1:  // PRE_FLOP: 덱에서 카드 2장 나누기 && 배팅
+                    break;
+                case 2:  // FLOP: 테이블카드 3장 까기 && 배팅
+                    break;
+                case 3:  // TURN: 테이블 카드 1장 까기 && 배팅
+                    break;
+                case 4:  // RIVER: 마지막 테이블 카드 1장 까기 && 최종 배팅
+                    break;
+                case 5:  // SHOWDOWN: 족보 비교 후 승패 결산
+                    break;
+            }
+        }
+    }
+}
