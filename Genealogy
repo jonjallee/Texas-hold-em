@@ -1,0 +1,194 @@
+
+
+//플레이어의 최상위 5장 카드 조합의 순위를 매기는 족보 판정 클래스입니다.
+//이부분은 구글 제미나이의 도움을 받아 제작하였습니다.
+class Genealogy {
+
+  
+    
+    //테이블 5장 + 손패 2장 총 7장의 카드들의 족보를 비교합니다
+     
+    public int evaluateHand(ArrayList<Card> sevenCards) {
+        if (isRoyalFlush(sevenCards))     return 12; // 로얄 스트레이트 플러시
+        if (isStraightFlush(sevenCards))  return 11; // 스트레이트 플러시
+        if (isFourOfAKind(sevenCards))    return 10; // 포카드
+        if (isFullHouse(sevenCards))      return 9;  // 풀하우스
+        if (isFlush(sevenCards))          return 8;  // 플러시
+        if (isStraight(sevenCards))       return 7;  // 스트레이트
+        if (isThreeOfAKind(sevenCards))   return 6;  // 트리플
+        if (isTwoPair(sevenCards))        return 5;  // 투페어
+        if (isOnePair(sevenCards))        return 4;  // 원페어
+
+        return 1; // 하이카드 점수 (기본값)
+    }
+
+    
+    // 1. 페어 계열 족보 판정 (숫자별 개수 배열 사용)
+    
+
+    // 포카드 판정: 어떤 숫자가 4장 모였는지 확인
+    private boolean isFourOfAKind(ArrayList<Card> cards) {
+        int[] rankCounts = getRankCounts(cards);
+        for (int count : rankCounts) {
+            if (count == 4) return true;
+        }
+        return false;
+    }
+
+    // 풀하우스 판정: 3장 같은 숫자(트리플)와 2장 같은 숫자(원페어)가 동시에 존재하는지 확인
+    private boolean isFullHouse(ArrayList<Card> cards) {
+        int[] rankCounts = getRankCounts(cards);
+        boolean hasTriple = false;
+        boolean hasPair = false;
+
+        for (int count : rankCounts) {
+            if (count == 3) hasTriple = true;
+            if (count == 2) hasPair = true;
+        }
+        return hasTriple && hasPair;
+    }
+
+    // 트리플 판정: 어떤 숫자가 3장 모였는지 확인
+    private boolean isThreeOfAKind(ArrayList<Card> cards) {
+        int[] rankCounts = getRankCounts(cards);
+        for (int count : rankCounts) {
+            if (count == 3) return true;
+        }
+        return false;
+    }
+
+    // 투페어 판정: 2장씩 겹치는 숫자가 2쌍 이상인지 확인
+    private boolean isTwoPair(ArrayList<Card> cards) {
+        int[] rankCounts = getRankCounts(cards);
+        int pairCount = 0;
+        for (int count : rankCounts) {
+            if (count == 2) pairCount++;
+        }
+        return pairCount >= 2;
+    }
+
+    // 원페어 판정: 어떤 숫자가 2장 겹치는지 확인
+    private boolean isOnePair(ArrayList<Card> cards) {
+        int[] rankCounts = getRankCounts(cards);
+        for (int count : rankCounts) {
+            if (count == 2) return true;
+        }
+        return false;
+    }
+
+    
+    // 2. 문양 및 연속성 계열 족보 판정
+    
+
+    // 플러시 판정: 같은 문양이 5장 이상 모였는지 확인
+    private boolean isFlush(ArrayList<Card> cards) {
+        int[] suitCounts = getSuitCounts(cards);
+        for (int count : suitCounts) {
+            if (count >= 5) return true;
+        }
+        return false;
+    }
+
+    // 스트레이트 판정: 문양 상관없이 숫자가 연속으로 5개 이어지는지 확인
+    private boolean isStraight(ArrayList<Card> cards) {
+        int[] rankCounts = getRankCounts(cards);
+        int consecutiveCount = 0;
+
+        // 2번방부터 14번방(A)까지 돌며 연속된 카드가 5장인지 체크
+        for (int i = 2; i <= 14; i++) {
+            if (rankCounts[i] > 0) {
+                consecutiveCount++;
+                if (consecutiveCount == 5) return true;
+            } else {
+                consecutiveCount = 0; // 연속이 끊기면 초기화
+            }
+        }
+
+        // 백스트레이트(A, 2, 3, 4, 5) 예외 처리
+        if (rankCounts[2] > 0 && rankCounts[3] > 0 && rankCounts[4] > 0 && 
+            rankCounts[5] > 0 && rankCounts[14] > 0) {
+            return true;
+        }
+
+        return false;
+    }
+
+    // 스트레이트 플러시 판정: 플러시를 만든 문양의 카드들만 모아서 스트레이트가 되는지 확인
+    private boolean isStraightFlush(ArrayList<Card> cards) {
+        String flushSuit = getFlushSuit(cards);
+        if (flushSuit == null) return false; // 플러시조차 아니면 탈락
+
+        // 플러시가 터진 그 문양의 카드들만 따로 걸러서 리스트에 담기
+        ArrayList<Card> flushCards = new ArrayList<>();
+        for (Card c : cards) {
+            if (c.pattern.equals(flushSuit)) {
+                flushCards.add(c);
+            }
+        }
+        // 그 카드들로만 다시 스트레이트 검사 진행
+        return isStraight(flushCards);
+    }
+
+    // 로얄 플러시 판정: 스트레이트 플러시이면서 동시에 10과 A(14)가 포함되어 있는지 확인
+    private boolean isRoyalFlush(ArrayList<Card> cards) {
+        String flushSuit = getFlushSuit(cards);
+        if (flushSuit == null) return false;
+
+        if (isStraightFlush(cards)) {
+            int[] rankCounts = getRankCounts(cards);
+            if (rankCounts[10] > 0 && rankCounts[14] > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    
+    // 3. 판정을 돕는 도우미 메서드 (Helper)
+   
+
+    // 7장 카드의 숫자별 빈도수를 계산 (인덱스 2번 ~ 14번방 사용)
+    private int[] getRankCounts(ArrayList<Card> cards) {
+        int[] counts = new int[15];
+        for (Card c : cards) {
+            int rankValue = convertRankToNumber(c.rank);
+            counts[rankValue]++;
+        }
+        return counts;
+    }
+
+    // 7장 카드의 문양별 빈도수를 계산 (스페이드, 하트, 다이아몬드, 클로버)
+    private int[] getSuitCounts(ArrayList<Card> cards) {
+        int[] suitCounts = new int[4]; 
+        for (Card c : cards) {
+            switch (c.pattern) {
+                case "Spade":   suitCounts[0]++; break;
+                case "Heart":   suitCounts[1]++; break;
+                case "Diamond": suitCounts[2]++; break;
+                case "Club":    suitCounts[3]++; break;
+            }
+        }
+        return suitCounts;
+    }
+
+    // 플러시가 완성된 문양의 이름을 반환 (없으면 null 반환)
+    private String getFlushSuit(ArrayList<Card> cards) {
+        int[] suitCounts = getSuitCounts(cards);
+        String[] suits = {"Spade", "Heart", "Diamond", "Club"};
+        for (int i = 0; i < 4; i++) {
+            if (suitCounts[i] >= 5) return suits[i];
+        }
+        return null;
+    }
+
+    // 문자열로 된 카드 숫자(A, K, Q, J 등)를 계산하기 편하게 정수형 점수로 변환
+    private int convertRankToNumber(String rank) {
+        switch (rank) {
+            case "A":  return 14;
+            case "K":  return 13;
+            case "Q":  return 12;
+            case "J":  return 11;
+            default:   return Integer.parseInt(rank); // "2"~"10"은 그대로 숫자로 변환
+        }
+    }
+}
