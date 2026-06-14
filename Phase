@@ -94,7 +94,7 @@ class Phase {
                     } else if (userScore < aiScore) {
                         System.out.println(" 패배... 경주 이씨 한량이 판돈을 쓸어갑니다. ");
                     } else {
-                        System.out.println(" 무승부(Split Pot)! 판돈을 절반씩 나눠 가집니다. ");
+                        System.out.println(" 무승부! 판돈을 절반씩 나눠 가집니다. ");
                     }
                     System.out.println("==================================");
 
